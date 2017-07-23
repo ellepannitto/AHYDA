@@ -1,7 +1,8 @@
 
 import os
+	
 
-class ExpandedFeaturesRun:
+class EntropyFeaturesRun:
 	
 	def __init__ ( self, filename, matrice_filtrata, dataset, dih, measures, threshold ):
 		'''
@@ -41,23 +42,29 @@ class ExpandedFeaturesRun:
 	def expand_features (self, t):
 		
 		path = "/home/ludovica.pannitto/progetto_sns/TypeDM/simpart/"
+		path_entr = "/home/ludovica.pannitto/progetto_sns/TypeDM/simentrpart/"
 		fileslist = os.listdir(path)
 		
 		if not t in self.features_expanded:
 			feats = {}
 			if t+".sim" in fileslist:	
-					f_ipo = open(path+t+".sim")
+					f_ipo = open(path_entr+t+".sim")
 					
 					feats_to_consider = set([el for el in self.matrice_filtrata[t]])
-					#~ feats_to_consider = set()
 					
 					w = 1
-					while w > self.threshold:
+					#~ while w > self.threshold:
+					while w > 0.5:
 						line = f_ipo.readline().split()
 						corr = line[0].strip()
 						w = float(line[1].strip())
 						
-						if w > self.threshold and not corr == t and corr in self.matrice_filtrata and corr[-1] == t[-1]:
+						#~ print t, corr, w
+						#~ print corr in self.matrice_filtrata
+						
+						#~ if w > self.threshold and not corr == t and corr in self.matrice_filtrata and corr[-1] == t[-1]:
+						if w > 0.5 and not corr == t and corr in self.matrice_filtrata and corr[-1] == t[-1]:
+							
 							for el in self.matrice_filtrata[corr]:
 								feats_to_consider.add(el)
 											
@@ -81,22 +88,39 @@ class ExpandedFeaturesRun:
 								corr = line[0]
 								w = float(line[1])
 								
-								if w > self.threshold and corr[-1] == lemma_el[-1] and corr+":"+el.split(":")[1] in feats_to_consider:
+								#~ if w > self.threshold and corr[-1] == lemma_el[-1] and corr+":"+el.split(":")[1] in feats_to_consider:
+								if w > self.threshold and corr[-1] == lemma_el[-1]:
 									feats[el].add(corr+":"+el.split(":")[1])
 	
 							self.already_processed[lemma_el] = feats[el]
 		
+						feats[el] = self.already_processed[lemma_el].intersection (feats_to_consider)
+						
+						if len(feats[el]) == 0:
+							feats[el] = set([el])
+						
+						
+						#~ print el, feats[el]
+						#~ raw_input()
 		
 			self.features_expanded[t] = feats
 		
 		return self.features_expanded[t]
+	
 	
 	def esegui_calcoli ( self ):
 		
 		sorted_selected_measures = sorted ( list(self.measures.selected_measures) )
 		self.fout.write ("target\trelatum\trelazione\t"+"\t".join (sorted_selected_measures)+"\n")
 		
+		print "coppie:", len(self.dataset)
+		
+		i = 0
 		for target, relatum, relazione in self.dataset:
+			i+=1
+			if not i%1000:
+				print "coppia", i, "->", target, relatum
+
 			self.fout.write (target+"\t"+relatum+"\t"+relazione+"\t")
 			measdict = self.compute_measures ( target, relatum )
 			for meas in sorted_selected_measures :

@@ -53,12 +53,15 @@ class Matrice:
 			
 	
 	def get_filtered_matrix ( self, filter_condition ):
-		ret = {}
-		for x in self.dict_matrice:
-			dict_row = { y:self.dict_matrice[x][y] for y in self.dict_matrice[x] if filter_condition(y) }
-			ret[x] = dict_row
 		
-		return ret
+		return self.dict_matrice
+		
+		#~ ret = {}
+		#~ for x in self.dict_matrice:
+			#~ dict_row = { y:self.dict_matrice[x][y] for y in self.dict_matrice[x] if filter_condition(y) }
+			#~ ret[x] = dict_row
+		
+		#~ return ret
 	
 			
 if __name__ == "__main__":

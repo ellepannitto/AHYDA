@@ -1,5 +1,6 @@
 
 import os
+	
 
 class ExpandedFeaturesRun:
 	
@@ -49,7 +50,6 @@ class ExpandedFeaturesRun:
 					f_ipo = open(path+t+".sim")
 					
 					feats_to_consider = set([el for el in self.matrice_filtrata[t]])
-					#~ feats_to_consider = set()
 					
 					w = 1
 					while w > self.threshold:
@@ -64,15 +64,13 @@ class ExpandedFeaturesRun:
 	
 					for el in self.matrice_filtrata[t]:
 						
-						feats[el] = set()
-						
 						lemma_el = el.split(":")[0]
 						
-						if lemma_el in self.already_processed:
-							
-							feats[el] = self.already_processed[lemma_el]
+						if not lemma_el in self.already_processed:
+							feats[el] = set()
+							#~ feats[el] = self.already_processed[lemma_el]
 
-						elif lemma_el+".sim" in fileslist:
+						#~ elif lemma_el+".sim" in fileslist:
 							f_feat = open(path+lemma_el+".sim")
 							
 							w = 1
@@ -81,15 +79,26 @@ class ExpandedFeaturesRun:
 								corr = line[0]
 								w = float(line[1])
 								
-								if w > self.threshold and corr[-1] == lemma_el[-1] and corr+":"+el.split(":")[1] in feats_to_consider:
+								#~ if w > self.threshold and corr[-1] == lemma_el[-1] and corr+":"+el.split(":")[1] in feats_to_consider:
+								if w > self.threshold and corr[-1] == lemma_el[-1]:
 									feats[el].add(corr+":"+el.split(":")[1])
 	
 							self.already_processed[lemma_el] = feats[el]
 		
-		
+						#~ feats[el] = set ()
+						#~ for x in self.already_processed[lemma_el]:
+							#~ if x in feats_to_consider:
+								#~ feats[el].add(x)
+										
+						feats[el] = self.already_processed[lemma_el].intersection (feats_to_consider)
+						
+						if len(feats[el]) == 0:
+							feats[el] = set([el])
+						
 			self.features_expanded[t] = feats
 		
 		return self.features_expanded[t]
+	
 	
 	def esegui_calcoli ( self ):
 		

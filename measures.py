@@ -2,12 +2,27 @@
 import math
 import os
 
+def read(filename):
+	
+	ret = {}
+	
+	with open(filename) as f:
+		for line in f:
+			linesplit = line.split()
+			
+			e = float(linesplit[1])
+			
+			ret[linesplit[0]] = e if e > 0 else 0.01
+			
+	return ret
+
 class MeasuresExpandedFeatures:
 	
 	def __init__ (self, cosines, selected_measures ):
 		self.cosines = cosines
 		self.selected_measures = selected_measures
 		self.current = {}	
+		self.entropies = read ("../TypeDM/sing_entropies2")
 	
 	def reset ( self ):
 		self.current = {}	
@@ -31,6 +46,14 @@ class MeasuresExpandedFeatures:
 				meas = self.invcl ( u, v, feats )
 			elif meas_name == "media":
 				meas = self.num_feats( u, v, feats )
+			elif meas_name == "numh":
+				meas = self.entr_num( u, v, feats )
+			elif meas_name == "hmedia":
+				self.compute("numh", u, v, feats)
+				meas = self.entr_feats (u, v, feats)
+			elif meas_name == "havgmedia":
+				self.compute("numh", u, v, feats)
+				meas = self.entr_avg_feats (u, v, feats)
 			elif meas_name == "cosmedia":
 				self.compute ( "media", u, v, feats )
 				meas = self.num_feats_2( u, v, feats )
@@ -116,6 +139,40 @@ class MeasuresExpandedFeatures:
 			num+=l
 			#~ den+=len(features[f])
 			
+		return num/den
+		
+	def entr_num (self, u, v, features):	
+		num = 0.0
+		
+		for f in features:
+			lemma_f = f.split(":")[0]
+			
+			l = 0.0		
+			for x in features[f]:
+				lemma_x = x.split(":")[0]
+				if x in v:
+					l+=self.entropies[lemma_x]
+			
+			num+=l
+	
+		return num
+		
+	def entr_feats (self, u, v, features):
+		
+		num = self.current["numh"]
+		den = 0.0
+		
+		for f in features:
+			lemma_f = f.split(":")[0]
+			den+=self.entropies[lemma_f]	
+				
+		return num/den
+
+	def entr_avg_feats (self, u, v, features):
+		
+		num = self.current["numh"]
+		den = len(u)*1.0
+				
 		return num/den
 
 	def num_feats_n (self, u, v, features):
